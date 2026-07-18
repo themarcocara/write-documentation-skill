@@ -1,0 +1,156 @@
+# Readability Reference
+
+Read this in full when in `readability` mode, or during the level pass (step 4) of `write-docs` mode. It is a reference for formulas, interpretation, and revision mechanics — the scoring itself is done by executing `readability-score-script.py` via code execution, not by hand.
+
+Two sub-modes within `readability` mode. Pick one before doing anything else:
+
+- **Analyze** (default): score the text, report metrics, suggest fixes. No rewrite.
+- **Revise**: the user wants the text rewritten to *land in* a target readability range. Triggers: "simplify this," "make this readable for a 6th grader," "lower the reading level," "rewrite for a general audience," or any explicit grade/score target.
+
+If the request is ambiguous, analyze first, then ask whether they want a revision.
+
+## Scoring is procedural — never hand-compute or eyeball a score
+
+All metrics in both modes come from `readability-score-script.py`, a stdlib-only Python script uploaded alongside this reference. Do not estimate syllables, sentence counts, or scores yourself, and do not do the arithmetic by hand. Write and execute the script via code execution and read its return value — call `compute_metrics(text)` directly with the text as a Python string. This keeps scores reproducible and internally consistent (all metrics are derived from the same tokenization).
+
+If code execution is not available in this conversation, say so explicitly and produce a directional estimate instead, labeled clearly as an estimate, not a score: "I'm estimating readability based on sentence length and vocabulary complexity because code execution is unavailable. This is not a scored measurement." Never present an unexecuted estimate as if it were the script's output.
+
+The script returns: `words`, `sentences`, `syllables`, `avg_sentence_length`, `avg_word_length`, `complex_words`, `complex_word_pct`, `polysyllable_words`, `passive_sentences`, `passive_pct`, `flesch_reading_ease`, `flesch_kincaid_grade`, `gunning_fog`, `smog_index`. Map these straight into the output tables below — don't recompute or round differently.
+
+---
+
+## Mode: Analyze
+
+Run the script on the input text and display its metrics.
+
+### Core Scores (reference — the script computes these; you only read the output)
+
+| Metric | Formula | Interpretation |
+|--------|---------|----------------|
+| **Flesch Reading Ease** | 206.835 - 1.015(words/sentences) - 84.6(syllables/words) | 0-100, higher = easier |
+| **Flesch-Kincaid Grade** | 0.39(words/sentences) + 11.8(syllables/words) - 15.59 | US grade level |
+| **Gunning Fog Index** | 0.4[(words/sentences) + 100(complex words/words)] | Years of education |
+| **SMOG Index** | 1.043 × √(polysyllable words × 30/sentences) + 3.1291 | Grade level |
+
+*Complex words (Fog) = 3+ syllables, excluding likely proper nouns and words that only reach 3 syllables via -es/-ed/-ing. Polysyllable words (SMOG) = raw 3+ syllable count.*
+
+### Text Statistics (from the script's output)
+
+- Word count, sentence count
+- Average sentence length (words), average word length (characters)
+- Complex words count and %
+- Passive voice sentences and % (heuristic estimate)
+
+### Output Format
+
+```
+## Readability Analysis
+
+### Scores
+| Metric | Score | Meaning |
+|--------|-------|---------|
+| Flesch Reading Ease | [X] | [interpretation] |
+| Flesch-Kincaid Grade | [X] | [grade level] |
+| Gunning Fog | [X] | [years education] |
+| SMOG | [X] | [grade level] |
+
+### Statistics
+- Words: [X]
+- Sentences: [X]
+- Avg sentence length: [X] words
+- Complex words: [X] ([Y]%)
+
+### Target Audience
+[Who can easily read this based on scores]
+
+### Recommendations
+1. [Specific suggestion]
+2. [Specific suggestion]
+3. [Specific suggestion]
+```
+
+Base recommendations on scores:
+- Sentences to shorten (if avg > 20 words)
+- Complex words to simplify
+- Passive voice to convert to active
+- Specific examples of what to fix
+
+### Interpretation Guide (real-world ↔ score)
+
+Use this table both to interpret scores and to translate a plain-language target into numbers.
+
+| Flesch Reading Ease | FK Grade | Real-world label | Audience |
+|---|---|---|---|
+| 90-100 | ~5 | Elementary | Very easy |
+| 80-89 | ~6 | Middle school | Easy |
+| 70-79 | ~7 | Middle school | Fairly easy |
+| 60-69 | 8-9 | High school | Standard / **general adult** |
+| 50-59 | 10-12 | High school | Fairly difficult |
+| 30-49 | 13-16 | College | Difficult |
+| 0-29 | 16+ | Graduate | Very difficult |
+
+Default mapping when a user gives a vague target instead of a number:
+- "kid-friendly" / "elementary" → Flesch 80-90, FK grade 5-6
+- "general public" / "adult" / "plain language" → Flesch 60-70, FK grade 8-9
+- "educated adult" / "broadsheet newspaper" → Flesch 50-60, FK grade 10-12
+- "professional" / "trade publication" → Flesch 30-50, FK grade 13-16
+- "academic" / "technical" / "expert" → Flesch <30, FK grade 16+
+
+---
+
+## Mode: Revise
+
+Goal: produce a rewrite whose measured scores fall inside a target range, not just text that "feels simpler."
+
+### 1. Establish the target — ask, don't assume
+
+If the user hasn't given a concrete target, ask one question that offers both framings at once, e.g.:
+
+> "What reading level should this land at? You can name a grade (e.g. '8th grade'), a real-world audience ('general adult,' 'kids,' 'technical expert'), or a specific Flesch/FK score. If unsure, I'd suggest **general adult (Flesch 60-70, ~8th-9th grade)** — the level of most news writing."
+
+Convert their answer to a numeric target range using the table above. State the range back in one line before rewriting (e.g. "Target: Flesch 60-70 / FK grade 8-9") so the user can correct it before you do the work.
+
+### 2. Baseline
+
+Run the script on the input text. Note the gap: which metrics are off-target, and by how much.
+
+### 3. Rewrite toward the gap, not away from meaning
+
+Apply only the levers that close the measured gap — don't rewrite lines that are already in range.
+
+| If current score is... | Lever |
+|---|---|
+| Too hard (grade/Fog too high, Flesch too low) | Split sentences >20 words at conjunctions; replace 3+ syllable words with shorter synonyms; convert passive → active; cut subordinate clauses |
+| Too easy (grade too low, Flesch too high — rare, but happens when a target skews academic) | Combine choppy sentences; restore precise/technical terms; add subordination |
+
+Preserve: facts, structure (same number of ideas/paragraphs), and tone. Simplify vocabulary and syntax, not content — a simpler reading level is not a shorter or dumber summary.
+
+### 4. Re-measure, iterate, stop
+
+Run the script again on the draft (before/after in one call if convenient). If Flesch Reading Ease and FK Grade are both within ±5 / ±1 of the target range, stop. If not, apply another targeted pass and re-run the script again. **Cap at 3 passes** — if still out of range after 3, report the closest result and say why (e.g. dense subject-matter vocabulary can't simplify further without losing accuracy).
+
+### Output Format
+
+```
+## Readability Revision
+
+Target: [range, e.g. Flesch 60-70 / FK grade 8-9 — "general adult"]
+
+### Before → After
+| Metric | Before | After | Target met? |
+|--------|--------|-------|-------------|
+| Flesch Reading Ease | [X] | [Y] | [✓/✗] |
+| Flesch-Kincaid Grade | [X] | [Y] | [✓/✗] |
+| Gunning Fog | [X] | [Y] | [✓/✗] |
+| Avg sentence length | [X] | [Y] | — |
+
+### Revised Text
+[full rewrite]
+
+### What changed
+1. [Specific edit, e.g. "split 3 sentences over 25 words"]
+2. [Specific edit]
+3. [Specific edit]
+```
+
+If the target couldn't be hit within 3 passes, add a one-line note on the blocker instead of silently returning an out-of-range draft.
