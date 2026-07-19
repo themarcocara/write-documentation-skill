@@ -1,12 +1,12 @@
 # Drive Setup for the Copydesk Gem
 
-This sets up the "project scope" the Gem's Register System section falls back to before the uploaded `register-tech-docs.md` knowledge file. Project scope wins when present — same priority order the original Claude Code skill used between `.claude/data/copydesk/registers/` (project) and `~/.claude/data/copydesk/registers/` (user).
+This sets up the "project scope" the Gem's Register System section falls back to before Appendix A (Default Register: tech-docs), inlined directly in `gem-instruction.md`. Project scope wins when present — same priority order the original Claude Code skill used between `.claude/data/copydesk/registers/` (project) and `~/.claude/data/copydesk/registers/` (user).
 
 ## Setup steps
 
 1. Create a folder called `copydesk` in your Google Drive.
 2. Inside it, create two subfolders: `registers` and `learning`.
-3. Create a new Google Doc at `copydesk/registers/tech-docs.md` and paste in the content of the uploaded `register-tech-docs.md` knowledge file (or your own register, once you've run `init` mode). This is the doc the Gem's Drive search looks for first.
+3. Create a new Google Doc at `copydesk/registers/tech-docs.md` and paste in the content of Appendix A (Default Register: tech-docs) from `gem-instruction.md` (or your own register, once you've run `init` mode). This is the doc the Gem's Drive search looks for first.
 4. Create a Google Doc at `copydesk/learning/accumulator.md` and paste in the content of `accumulator.md` in this folder (a blank starter template).
 5. Create a Google Doc at `copydesk/learning/splits.md` and paste in the content of `splits.md` in this folder. This isn't actively used by the simplified `learn` mode in v1 (there's no pairwise gate to feed it), but it's included so the structure is in place if a future version reintroduces that gate.
 6. In the Gemini app, enable the Google Workspace extension for this Gem (Gemini settings → Extensions → Google Workspace). Without this, the Gem has no way to search Drive and will always fall back to the uploaded register.
