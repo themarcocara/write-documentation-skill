@@ -132,6 +132,24 @@ Check for these and report in the advisory table. Each is a potential issue, not
 
 **9. Hollow anadiplosis.** Word-echo (last word of one clause becomes the first word of the next) used to create rhetorical shape, where the second clause asserts a tautological implication of the first instead of developing it. Real anadiplosis develops each link (Yoda: "fear leads to anger, anger leads to hate, hate leads to suffering" — each step adds a new concept). Hollow anadiplosis just restates. Example: "The operational sprawl becomes readable, and readable sprawl is the kind that gets fixed" — the second clause asserts readability implies fixability, which the first clause already implied. Adjacent to #24 (generic positive conclusions) but more specific: that one is about empty upbeat endings; this is about device-without-substance using word-echo structure.
 
+**10. Asyndeton tricolon.** Three items listed without conjunctions, each longer and more emotionally weighted than the last: "Two hours of degraded service, six engineers figuring out what I'd done wrong, a postmortem where I had to explain my reasoning to people who had been paged at home." AI builds these to manufacture escalating emotional weight where a plainer statement would do. Flag the three items and note the increasing length.
+
+**11. Parallel reason chains.** Three consecutive sentences sharing the same "subject + because/when + reason" clause shape, even when the subjects differ: "I filed patents because X. The project started because Y. I gave talks when Z." The parallel shape is detectable even across different subjects. Flag the run and suggest varying the clause structure (one "because," one bare assertion, one gerund or fragment).
+
+**12. Participial reframe pivot.** A list of plain facts followed by a participial opener that reframes them as insight: "Laid out in a petition, the same facts read like a deliberate strategy." "Seen this way, the whole arc reads differently." AI uses this pivot to manufacture the appearance of insight; the observation should be stated directly without the reframing device. Quote the participial opener.
+
+### AI-edited fraction estimate
+
+Separately from line-level findings, estimate what portion of the text reads as AI-written or AI-edited. This covers the common case where a human drafts over an AI scaffold, or edits an AI draft rather than writing from scratch.
+
+Look for distribution clues:
+- Uniform AI signature across the whole text suggests pure AI generation.
+- Specific paragraphs polished, others rough, suggests selective AI editing.
+- AI vocabulary clustering in transitions and conclusions while the body stays concrete suggests an AI scaffold with human substance dropped in.
+- Voice changing mid-text (formal to casual or back) suggests mixed sources.
+
+Report one bucket: `Pure human (~0%)` / `Lightly AI-assisted (~10-30%)` / `Mixed authorship (~30-60%)` / `Heavily AI-edited (~60-90%)` / `Pure AI (~100%)`.
+
 ### Engagement
 
 - Does the opening earn the next sentence?
@@ -183,6 +201,8 @@ Check for these and report in the advisory table. Each is a potential issue, not
 | # | Line | Pattern | Current | Proposed fix |
 |---|---|---|---|---|
 | 1 | [quote the text] | [pattern name] | [what's wrong] | [a proposed replacement or direction] |
+
+**AI-edited fraction:** one bucket from the estimate above.
 
 **What's working:** 1-2 sentences on what the prose does well. This prevents over-correction of good writing.
 
